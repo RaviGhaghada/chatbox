@@ -2,6 +2,9 @@ package server;
 
 import javax.swing.*;
 
+/**
+ * Run an instance of a Server
+ */
 public class ServerTest {
 
     public static void main(String[] args) {
