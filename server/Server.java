@@ -1,5 +1,8 @@
 package server;
 
+import common.Message;
+import common.MessageType;
+
 import javax.swing.*;
 import java.awt.*;
 import java.io.*;
@@ -22,7 +25,7 @@ public class Server extends JFrame{
     /**
      * Store all messages to be sent to clients
      */
-    private LinkedBlockingQueue<String> messages;
+    private LinkedBlockingQueue<Message> messages;
 
     /**
      * Allow the server to type anything to be sent to the clients
@@ -46,7 +49,9 @@ public class Server extends JFrame{
         userText.setEditable(true);
         userText.addActionListener(e -> {
             try {
-                messages.put("SERVER - " + e.getActionCommand());
+                String text = "SERVER - " + e.getActionCommand();
+                Message message = new Message(MessageType.CHAT, text, getMyName());
+                messages.put(message);
             } catch (InterruptedException e1) {
                 e1.printStackTrace();
             }
@@ -94,7 +99,8 @@ public class Server extends JFrame{
                     Socket connection = server.accept();
                     ConnectionToClient client = new ConnectionToClient(connection);
                     clients.add(client);
-                    messages.put(client.name() + " connected!");
+                    Message message = new Message(MessageType.CHAT, client.name() + " connected!", getMyName());
+                    messages.put(message);
                 } catch (IOException e) {
                     e.printStackTrace();
                 } catch (InterruptedException e) {
@@ -105,6 +111,13 @@ public class Server extends JFrame{
         searchConn.setDaemon(true);
         searchConn.start();
 
+    }
+
+    /**
+     * Get host name of server
+     */
+    public String getMyName(){
+        return server.getInetAddress().getHostName();
     }
 
     /**
@@ -120,7 +133,8 @@ public class Server extends JFrame{
                    ConnectionToClient conn = clients.get(i);
                    if (conn.isClosed()){
                        try {
-                           messages.put(conn.name() + " disconnected.");
+                           Message message = new Message(MessageType.CHAT, conn.name() + " disconnected.", getMyName());
+                           messages.put(message);
                        } catch (InterruptedException e) {
                            e.printStackTrace();
                        }
@@ -144,9 +158,9 @@ public class Server extends JFrame{
             while (true){
                 if (!messages.isEmpty()){
                     try {
-                        String message = messages.take();
+                        Message message = messages.take();
                         emitAll(message);
-                        showMessage(message);
+                        showMessage(message.getData());
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
@@ -161,11 +175,11 @@ public class Server extends JFrame{
      * Send a message to all connected clients
      * @param message string to be sent
      */
-    private void emitAll(String message){
+    private void emitAll(Message message){
         int i=0;
         while (i<clients.size()){
             clients.get(i).send(message);
-            showMessage(message);
+            showMessage(message.getData());
             i++;
         }
     }
@@ -221,8 +235,7 @@ public class Server extends JFrame{
             Thread getMessages = new Thread(()->{
                 while (true) {
                     try {
-                        String message = (String) in.readObject();
-                        System.out.println(message);
+                        Message message = (Message) in.readObject();
                         messages.put(message);
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -235,7 +248,6 @@ public class Server extends JFrame{
             });
             getMessages.setDaemon(true);
             getMessages.start();
-
         }
 
         /**
@@ -250,7 +262,7 @@ public class Server extends JFrame{
          * Send a string to the client
          * @param message message to be sent to client
          */
-        public void send(String message){
+        public void send(Message message){
             Thread sender = new Thread(()->{
                 try {
                     out.writeObject(message);

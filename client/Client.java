@@ -1,5 +1,8 @@
 package client;
 
+import common.Message;
+import common.MessageType;
+
 import javax.swing.*;
 import java.awt.*;
 import java.io.IOException;
@@ -8,14 +11,12 @@ import java.io.ObjectOutputStream;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
-
 public class Client extends JFrame{
 
     private JTextField userText;
     private JTextArea chatWindow;
     private ObjectOutputStream output;
     private ObjectInputStream input;
-    private String message = "";
     private String serverIP;
     private Socket connection;
 
@@ -27,7 +28,8 @@ public class Client extends JFrame{
         userText = new JTextField();
         userText.setEditable(false);
         userText.addActionListener(e -> {
-            sendMessage(e.getActionCommand());
+            Message message = new Message(MessageType.CHAT, e.getActionCommand(), getMyName());
+            sendMessage(message);
             userText.setText("");
         });
         add(userText, BorderLayout.NORTH);
@@ -44,9 +46,9 @@ public class Client extends JFrame{
      * send a message to the server
      * @param message message to be sent
      */
-    private void sendMessage(String message) {
+    private void sendMessage(Message message) {
         try{
-            output.writeObject("CLIENT - " + message);
+            output.writeObject(message);
             output.flush();
             // i'm going to keep this commented
             // till i figure out a way to
@@ -87,7 +89,9 @@ public class Client extends JFrame{
      * @param s message to be displayed to the user
      */
     private void showMessage(final String s) {
-        SwingUtilities.invokeLater(() -> chatWindow.append(s));
+        SwingUtilities.invokeLater(() -> {
+            chatWindow.append(s);
+        });
     }
 
     /**
@@ -115,17 +119,17 @@ public class Client extends JFrame{
      */
     private void whileChatting(){
         ableToType(true);
-        String message = "";
+        Message message = new Message(MessageType.CHAT, "","");
         do{
             try{
-                message = (String) input.readObject();
-                showMessage("\n" + message);
+                message = (Message) input.readObject();
+                showMessage("\n" + message.getData());
             } catch (IOException e) {
                 e.printStackTrace();
             } catch (ClassNotFoundException e) {
                 e.printStackTrace();
             }
-        }while (!message.equals("SERVER - END"));
+        }while (!message.getData().equals("SERVER - END"));
     }
 
 
@@ -139,6 +143,10 @@ public class Client extends JFrame{
      */
     private void ableToType(boolean b) {
         SwingUtilities.invokeLater(() -> userText.setEditable(b));
+    }
+
+    private String getMyName(){
+        return "CLIENT";
     }
 
 }
