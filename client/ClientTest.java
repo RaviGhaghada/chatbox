@@ -2,6 +2,9 @@ package client;
 
 import javax.swing.*;
 
+/**
+ * Run an instance of a client
+ */
 public class ClientTest {
 
     public static void main(String[] args) {
