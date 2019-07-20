@@ -14,6 +14,10 @@ public class Message implements Serializable {
         this.type = type;
         this.data = data;
         this.source = source;
+
+        if (this.type == MessageType.TYPING){
+            this.data = source + " is typing ... ";
+        }
     }
 
     public MessageType getType() {

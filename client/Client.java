@@ -20,6 +20,7 @@ public class Client extends JFrame{
     private String serverIP;
     private Socket connection;
 
+
     // constructor
     public Client(String host){
         super("Client window");
@@ -33,13 +34,35 @@ public class Client extends JFrame{
             userText.setText("");
         });
         add(userText, BorderLayout.NORTH);
-
         chatWindow = new JTextArea();
         chatWindow.setEditable(false);
         add(new JScrollPane(chatWindow));
 
         setSize(300, 150);
         setVisible(true);
+
+        isTypingListener();
+
+    }
+
+    private void isTypingListener() {
+        Thread thread = new Thread(()->{
+            while(true){
+                if (this.userText!=null)
+                    if(this.userText.getText().length()!=0){
+
+                        Message message = new Message(MessageType.TYPING, "", getMyName());
+                        sendMessage(message);
+                        try {
+                            Thread.sleep(1000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+            }
+        });
+        thread.setDaemon(true);
+        thread.start();
     }
 
     /**
@@ -81,6 +104,11 @@ public class Client extends JFrame{
      */
     private void closeConnections(){
         showMessage("\nDisconnecting from server..");
+        try {
+            connection.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         ableToType(false);
     }
 
@@ -123,7 +151,15 @@ public class Client extends JFrame{
         do{
             try{
                 message = (Message) input.readObject();
-                showMessage("\n" + message.getData());
+                switch (message.getType()){
+                    case CHAT:
+                        showMessage("\n" + message.getData());
+                        break;
+
+                    case TYPING:
+                        showMessage("\n" + message.getData());
+                }
+
             } catch (IOException e) {
                 e.printStackTrace();
             } catch (ClassNotFoundException e) {
