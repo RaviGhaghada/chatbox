@@ -11,10 +11,9 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name="com.example.chatbox.client.MainActivity" android:screenOrientation="portrait" android:windowSoftInputMode = "adjustResize">
-            <intent-filter>
+        <activity android:name="com.example.client.MainActivity" android:screenOrientation="portrait" android:windowSoftInputMode="adjustResize">
+            <intent-filter>s
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>

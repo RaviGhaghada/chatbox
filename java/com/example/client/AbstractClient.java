@@ -56,12 +56,12 @@ public abstract class AbstractClient {
      * @throws IOException
      */
     private void connectToServer() {
-        showMessage("\nConnecting to server...");
+        //showMessage("\nConnecting to server...");
 
         while (connection == null){
             try {
                 connection = new Socket(InetAddress.getByName(serverIP), port);
-                showMessage("\nConnected to " + connection.getInetAddress().getHostName());
+             //   showMessage("\nConnected to " + connection.getInetAddress().getHostName());
             }catch (Exception e){
                 e.printStackTrace();
                 connection = null;
@@ -101,12 +101,12 @@ public abstract class AbstractClient {
      */
     private void whileChatting(){
         //ableToType(true);
-        MessageInterface message = null;
+        MessageInterface message;
 
         do{
             try {
-                message = (MessageInterface) Class.forName("com.example.client.Message").newInstance();
-                message.createFromJSON(new JSONObject((String) input.readObject()));
+                message = (MessageInterface) Class.forName(this.mClass).newInstance();
+                message.createFromJSON(new JSONObject((String) this.input.readObject()));
                 handleIncomingMessage(message);
             } catch (JSONException e) {
                 e.printStackTrace();
